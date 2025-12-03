@@ -31,9 +31,6 @@ export default async function handler(req, res) {
             params.after = after;
           }
         }
-
-        console.log(`Fetching page ${pageCount}... (after: ${after || 'start'})`);
-        console.log('Request params:', params);
         
         const response = await axios.get('https://api.paddle.com/transactions', {
           headers: {
@@ -43,14 +40,8 @@ export default async function handler(req, res) {
           params,
         });
 
-        console.log('Response status:', response.status);
-        console.log('Full response structure:');
-        console.log('Response data keys:', Object.keys(response.data || {}));
-        console.log('Response meta:', JSON.stringify(response.data?.meta, null, 2));
-
         // Check if response has the expected structure
         if (!response.data) {
-          console.log('No response data');
           break;
         }
 
@@ -71,7 +62,6 @@ export default async function handler(req, res) {
             }
           });
         } else {
-          console.log('Unexpected response structure:', response.data);
           break;
         }
 
@@ -109,7 +99,6 @@ export default async function handler(req, res) {
           if (lastTransaction?.created_at) {
             // Convert to ISO string and use as after parameter
             nextCursor = lastTransaction.created_at;
-            console.log(`Using timestamp cursor: ${nextCursor}`);
           }
         }
         
@@ -118,37 +107,29 @@ export default async function handler(req, res) {
           const lastTransaction = transactions[transactions.length - 1];
           if (lastTransaction?.id) {
             nextCursor = lastTransaction.id;
-            console.log(`Using ID cursor: ${nextCursor}`);
           }
         }
 
         after = nextCursor;
         hasNextPage = !!nextCursor && transactions.length > 0;
-
-        console.log(`Page ${pageCount}: Fetched ${transactions.length} transactions. Total so far: ${allTransactions.length}`);
-        console.log(`Has more pages: ${hasNextPage}, Next cursor: ${after || 'none'}`);
         
         // Additional stop conditions
         if (transactions.length === 0) {
-          console.log('No transactions returned, stopping pagination');
           hasNextPage = false;
         }
         
         // If we got fewer transactions than requested, we might be at the end
         if (transactions.length < params.per_page && !nextCursor) {
-          console.log('Reached end of results (partial page and no cursor)');
           hasNextPage = false;
         }
         
         // Safety check to prevent infinite loops
         if (allTransactions.length > 50000) {
-          console.log('Reached safety limit of 50,000 transactions');
           break;
         }
 
         // Safety check for too many pages
         if (pageCount > 250) {
-          console.log('Reached safety limit of 250 pages');
           break;
         }
 
@@ -160,8 +141,6 @@ export default async function handler(req, res) {
 
       return allTransactions;
     };
-
-    console.log('Starting to fetch ALL transactions...');
     
     const list = await fetchAllTransactions();
     
@@ -176,22 +155,14 @@ export default async function handler(req, res) {
       }
     }
     
-    console.log(`Total transactions after deduplication: ${uniqueTransactions.length} (removed ${list.length - uniqueTransactions.length} duplicates)`);
-    
     // Use the unique list
     const finalList = uniqueTransactions;
     
     if (!finalList.length) {
-      console.log('No transactions found');
       return res.status(404).json({ message: 'No transactions found' });
     }
 
     finalList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    
-    // Log all transactions to console
-    console.log('=== ALL PADDLE TRANSACTIONS ===');
-    console.log(`Total transactions found: ${finalList.length}`);
-    console.log('');
     
     // Group transactions by status for better overview
     const statusGroups = {};
@@ -201,28 +172,8 @@ export default async function handler(req, res) {
       statusGroups[status].push(tx);
     });
 
-    console.log('Transactions by status:');
-    Object.keys(statusGroups).forEach(status => {
-      console.log(`  ${status}: ${statusGroups[status].length} transactions`);
-    });
-    console.log('');
-    
-    finalList.forEach((tx, index) => {
-      console.log(`Transaction ${index + 1}:`);
-      console.log(`  ID: ${tx.id}`);
-      console.log(`  Status: ${tx.status}`);
-      console.log(`  Invoice: ${tx.invoice_number || tx.invoice_id || 'N/A'}`);
-      console.log(`  Customer: ${tx.customer_id || 'N/A'}`);
-      console.log(`  Currency: ${tx.currency_code || 'N/A'}`);
-      console.log(`  Amount: ${tx.items?.[0]?.price?.unit_price?.amount || 'N/A'}`);
-      console.log(`  Billed at: ${tx.billed_at || tx.created_at || 'N/A'}`);
-      console.log('  ---');
-    });
-
     const completed = finalList.find(t => t.status === 'completed');
     const latestTx = completed || finalList[0];
-    
-    console.log('Latest/Completed transaction:', latestTx);
 
     return res.status(200).json({ 
       ok: true, 

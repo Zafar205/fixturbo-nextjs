@@ -3,12 +3,9 @@ import Link from "next/link";
 import SEOHead from "../components/SEOHead";
 
 const ThankYouPage = () => {
-  console.log("21342314")
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
-    console.log("page loaded");
-;
   }, []);
 
   return (

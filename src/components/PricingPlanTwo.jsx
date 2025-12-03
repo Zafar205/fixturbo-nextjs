@@ -114,7 +114,6 @@ const PricingPlanTwo = () => {
       const data = await response.json();
       if (data && data.country_code) {
         setUserCountry(data.country_code);
-        console.log(`Detected country: ${data.country_code}`);
       }
     } catch (error) {
       console.error("Error detecting country:", error);
@@ -133,14 +132,12 @@ const PricingPlanTwo = () => {
           window.Paddle.Setup({
             token: CONFIG.clientToken,
             eventCallback: function (event) {
-              console.log("Paddle event:", event);
               if (event.name === "checkout.completed") {
                 setShowModal(false);
                 alert("Payment successful! You will receive your report shortly.");
               }
             }
           });
-          console.log("Paddle initialized successfully");
         } catch (error) {
           console.error("Paddle initialization error:", error);
         }
@@ -223,9 +220,9 @@ const PricingPlanTwo = () => {
 
       const result = await response.text();
       if (response.ok) {
-        console.log("Submitted successfully!\n" + result);
+        // Successfully submitted
       } else {
-        console.log("Error: " + result);
+        // Error occurred
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -243,8 +240,6 @@ const PricingPlanTwo = () => {
         setLoading(false);
         return;
       }
-
-      console.log(`Opening checkout for ${planType} plan with price ID: ${priceId}`);
 
       window.Paddle.Checkout.open({
         items: [{

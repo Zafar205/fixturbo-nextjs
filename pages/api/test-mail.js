@@ -6,12 +6,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('=== EMAIL CONFIGURATION TEST ===');
-    console.log('EMAIL_USER:', process.env.EMAIL_USER);
-    console.log('EMAIL_PASS length:', process.env.EMAIL_PASS?.length || 0);
-    console.log('EMAIL_PASS preview:', process.env.EMAIL_PASS ? process.env.EMAIL_PASS.substring(0, 4) + '****' : 'MISSING');
-
-    
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       return res.status(500).json({
         error: 'Missing email credentials',
@@ -30,7 +24,6 @@ export default async function handler(req, res) {
 
     // Test the connection first
     await transporter.verify();
-    console.log('✅ SMTP connection verified');
 
     // Send test email
     const info = await transporter.sendMail({
@@ -45,8 +38,6 @@ export default async function handler(req, res) {
         <p><b>From:</b> ${process.env.EMAIL_USER}</p>
       `,
     });
-
-    console.log('✅ Test email sent successfully:', info.messageId);
 
     return res.status(200).json({ 
       success: true,

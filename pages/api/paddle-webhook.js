@@ -22,7 +22,6 @@ export default async function handler(req, res) {
 
   try {
     const payload = req.body;
-    console.log('📨 Incoming webhook:', payload);
     const eventType = payload.event_type;
     const total = payload.data?.details?.totals?.total;
     const currency = payload.data?.currency_code;
@@ -35,8 +34,6 @@ export default async function handler(req, res) {
         subject: '💰 Paddle Transaction Created!',
         text: `New transaction for ${total} ${currency}. Checkout at: ${checkoutURL}`,
       });
-
-      console.log('✅ Email sent');
     }
 
     res.status(200).send('Webhook received');

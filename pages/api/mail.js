@@ -60,13 +60,6 @@ export default async function handler(req, res) {
     const signature = req.headers['paddle-signature'] || '';
     const secretKey = process.env.PADDLE_SECRET_KEY || '';
 
-    console.log('Webhook received:', {
-      hasSignature: !!signature,
-      hasBody: !!rawRequestBody,
-      hasSecretKey: !!secretKey,
-      bodyLength: rawRequestBody.length
-    });
-
     if (!signature || !rawRequestBody) {
       console.error('Missing signature or body:', { signature: !!signature, body: !!rawRequestBody });
       return res.status(400).json({ message: 'Signature or body missing' });
@@ -89,8 +82,6 @@ export default async function handler(req, res) {
       console.error('Webhook verification failed:', verificationError);
       return res.status(400).json({ message: 'Invalid webhook signature' });
     }
-
-    console.log('Webhook verified successfully:', eventData.eventType);
 
     let customerDetails = null;
     const customerId = eventData.data.customerId;
@@ -137,7 +128,6 @@ export default async function handler(req, res) {
         subject = `Subscription Canceled: ${eventData.data.id}`;
         break;
       default:
-        console.log('Unhandled event type:', eventData.eventType);
         break;
     }
 
@@ -158,8 +148,6 @@ export default async function handler(req, res) {
         text: plain,
         html,
       });
-
-      console.log('Email sent successfully for event:', eventData.eventType);
     } catch (emailError) {
       console.error('Email sending failed:', emailError);
       // Don't fail the webhook if email fails

@@ -12,9 +12,7 @@ export default function App({ Component, pageProps }) {
     if (typeof window !== 'undefined' && 'performance' in window) {
       // Log Core Web Vitals
       const reportWebVitals = (metric) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`${metric.name}: ${metric.value}`);
-        }
+        // Web vitals can be sent to analytics here if needed
       };
       
       // Monitor LCP, FID, CLS
